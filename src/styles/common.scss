@@ -1,0 +1,46 @@
+html,
+body {
+  margin: 0;
+  font-family: sans-serif, serif;
+  font-size: 16px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-between-start {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+input:active,
+input:hover,
+input:focus,
+input {
+  text-decoration: none;
+  outline: none;
+}
+
+a:active,
+a:hover,
+a {
+  text-decoration: none;
+}
+
+.pointer {
+  cursor: pointer;
+}
