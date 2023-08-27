@@ -51,8 +51,15 @@ export const News = () => {
     }
   };
 
-  const handleChangeDelete = (value: boolean) => {
-    console.log('delete', value, selectedId);
+  const handleChangeDelete = async (value: boolean) => {
+    if (value && selectedId) {
+      try {
+        await axios.delete(`/news/${selectedId}`);
+        getNews(0, 10);
+      } catch (error) {
+        console.error(error);
+      }
+    }
     setOpenModalDelete(false);
     setSelectedId(null);
   };

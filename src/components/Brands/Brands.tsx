@@ -45,7 +45,6 @@ export const Brands = () => {
       if (response.status !== 200 || typeof response.data === 'string') {
         throw new Error('bad response');
       }
-      console.log(444, response.data.content);
 
       setBrands(response.data);
     } catch (error) {
@@ -55,8 +54,15 @@ export const Brands = () => {
     }
   };
 
-  const handleChangeDelete = (value: boolean) => {
-    console.log('delete', value, selectedId);
+  const handleChangeDelete = async (value: boolean) => {
+    if (value && selectedId) {
+      try {
+        await axios.delete(`/brand/${selectedId}`);
+        getBrands(0, 10);
+      } catch (error) {
+        console.error(error);
+      }
+    }
     setOpenModalDelete(false);
     setSelectedId(null);
   };
@@ -107,6 +113,9 @@ export const Brands = () => {
       />
       <ModalActivate
         isOpen={openModalActivate}
+        isActive={
+          brands?.content.find(({ id }: any) => id === selectedId)?.active
+        }
         onChangeDelete={handleChangeActivate}
       />
       {isLoading && (

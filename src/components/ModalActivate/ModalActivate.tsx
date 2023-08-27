@@ -8,6 +8,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 export const ModalActivate: FC<any> = ({
   isOpen = false,
+  isActive = true,
   onChangeDelete = () => {},
 }) => {
   return (
@@ -18,11 +19,15 @@ export const ModalActivate: FC<any> = ({
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        Деактивированный элемент не отображается клиенту на сайте.
+        {isActive &&
+          'Деактивированный элемент не отображается клиенту на сайте.'}
+        {!isActive &&
+          'Активированный элемент будет отображается клиенту на сайте.'}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Вы уверены, что хотите деактивировать?
+          {isActive && 'Вы уверены, что хотите деактивировать?'}
+          {!isActive && 'Вы уверены, что хотите активировать?'}
         </DialogContentText>
       </DialogContent>
 

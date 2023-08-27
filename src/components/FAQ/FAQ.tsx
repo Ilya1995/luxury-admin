@@ -50,8 +50,15 @@ export const FAQ = () => {
     }
   };
 
-  const handleChangeDelete = (value: boolean) => {
-    console.log('delete', value, selectedId);
+  const handleChangeDelete = async (value: boolean) => {
+    if (value && selectedId) {
+      try {
+        await axios.delete(`/faq/${selectedId}`);
+        getFAQ(0, 10);
+      } catch (error) {
+        console.error(error);
+      }
+    }
     setOpenModalDelete(false);
     setSelectedId(null);
   };
