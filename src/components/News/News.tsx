@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import dayjs from 'dayjs';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Paper from '@mui/material/Paper';
@@ -7,7 +9,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
@@ -15,52 +16,39 @@ import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { ModalDelete } from '../ModalDelete';
+import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
+import { COLUMNS } from './constants';
 
 import './styles.scss';
 
-const columns = [
-  { id: 'name', label: 'Заголовок', width: '60%' },
-  { id: 'code', label: 'Дата', width: '15%' },
-  {
-    id: 'population',
-    label: 'Действия',
-    width: '25%',
-  },
-];
-
-const rows = [
-  { id: 1, title: 'Новость 1', date: '21.11.1995' },
-  { id: 2, title: 'Новость 2', date: '21.11.1995' },
-  { id: 3, title: 'Новость 3', date: '21.11.1995' },
-  { id: 4, title: 'Новость 4', date: '21.11.1995' },
-  { id: 5, title: 'Новость 5', date: '21.11.1995' },
-  { id: 6, title: 'Новость 6', date: '21.11.1995' },
-  { id: 7, title: 'Новость 7', date: '21.11.1995' },
-  { id: 8, title: 'Новость 8', date: '21.11.1995' },
-  { id: 9, title: 'Новость 9', date: '21.11.1995' },
-  { id: 10, title: 'Новость 10', date: '21.11.1995' },
-  { id: 11, title: 'Новость 11', date: '21.11.1995' },
-  { id: 12, title: 'Новость 12', date: '21.11.1995' },
-];
-
 export const News = () => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [news, setNews] = useState<any>();
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
+  useEffect(() => {
+    getNews(0, 10);
+  }, []);
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+  const getNews = async (page: number, size: number) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`/news?page=${page}&size=${size}`);
+      if (response.status !== 200 || typeof response.data === 'string') {
+        throw new Error('bad response');
+      }
+
+      setNews(response.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangeDelete = (value: boolean) => {
@@ -72,10 +60,6 @@ export const News = () => {
   const handleShowModalDelete = (id: number) => {
     setOpenModalDelete(true);
     setSelectedId(id);
-  };
-
-  const labelDisplayedRows = ({ from, to, count }: any) => {
-    return `${from}–${to} из ${count !== -1 ? count : `больше чем ${to}`}`;
   };
 
   return (
@@ -97,29 +81,41 @@ export const News = () => {
         isOpen={openModalDelete}
         onChangeDelete={handleChangeDelete}
       />
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: '70vh' }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                {columns.map((column, index) => (
-                  <TableCell
-                    key={column.id}
-                    align={index === 2 ? 'right' : 'left'}
-                    style={{ width: column.width }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {news?.totalElements && (
+        <Paper
+          sx={{
+            width: '100%',
+            overflow: 'hidden',
+            display: isLoading ? 'none' : 'block',
+          }}
+        >
+          <TableContainer sx={{ maxHeight: '70vh' }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {COLUMNS.map((column, index) => (
+                    <TableCell
+                      key={column.id}
+                      align={index === 2 ? 'right' : 'left'}
+                      style={{ width: column.width }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {news.content.map((row: any) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                     <TableCell align="left">{row.title}</TableCell>
-                    <TableCell align="left">{row.date}</TableCell>
+                    <TableCell align="left">
+                      {dayjs(row.newsDate).format('DD.MM.YYYY')}
+                    </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Удалить">
                         <IconButton
@@ -137,21 +133,12 @@ export const News = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          labelRowsPerPage="Количество элементов"
-          labelDisplayedRows={labelDisplayedRows}
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Pagination count={news.totalElements} getData={getNews} />
+        </Paper>
+      )}
     </Box>
   );
 };

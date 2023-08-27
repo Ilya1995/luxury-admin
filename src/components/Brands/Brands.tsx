@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Paper from '@mui/material/Paper';
@@ -7,7 +8,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
@@ -17,51 +17,39 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { ModalDelete } from '../ModalDelete';
+import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
+import { COLUMNS } from './constants';
 
 import './styles.scss';
 
-const columns = [
-  { id: 'name', label: 'Название', minWidth: 450 },
-  {
-    id: 'population',
-    label: 'Действия',
-    minWidth: 50,
-  },
-];
-
-const rows = [
-  { id: 1, title: 'Бренд 1', active: true },
-  { id: 2, title: 'Бренд 2', active: true },
-  { id: 3, title: 'Бренд 3', active: false },
-  { id: 4, title: 'Бренд 4', active: true },
-  { id: 5, title: 'Бренд 5', active: true },
-  { id: 6, title: 'Бренд 6', active: true },
-  { id: 7, title: 'Бренд 7', active: true },
-  { id: 8, title: 'Бренд 8', active: true },
-  { id: 9, title: 'Бренд 9', active: true },
-  { id: 10, title: 'Бренд 10', active: true },
-  { id: 11, title: 'Бренд 11', active: true },
-  { id: 12, title: 'Бренд 12', active: true },
-];
-
 export const Brands = () => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
+  const [brands, setBrands] = useState<any>();
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
+  useEffect(() => {
+    getBrands(0, 10);
+  }, []);
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+  const getBrands = async (page: number, size: number) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`/brand?page=${page}&size=${size}`);
+      if (response.status !== 200 || typeof response.data === 'string') {
+        throw new Error('bad response');
+      }
+
+      setBrands(response.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangeDelete = (value: boolean) => {
@@ -73,10 +61,6 @@ export const Brands = () => {
   const handleShowModalDelete = (id: number) => {
     setOpenModalDelete(true);
     setSelectedId(id);
-  };
-
-  const labelDisplayedRows = ({ from, to, count }: any) => {
-    return `${from}–${to} из ${count !== -1 ? count : `больше чем ${to}`}`;
   };
 
   return (
@@ -98,26 +82,36 @@ export const Brands = () => {
         isOpen={openModalDelete}
         onChangeDelete={handleChangeDelete}
       />
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: '70vh' }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                {columns.map((column, index) => (
-                  <TableCell
-                    key={column.id}
-                    align={index === 1 ? 'right' : 'left'}
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {brands?.totalElements && (
+        <Paper
+          sx={{
+            width: '100%',
+            overflow: 'hidden',
+            display: isLoading ? 'none' : 'block',
+          }}
+        >
+          <TableContainer sx={{ maxHeight: '70vh' }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {COLUMNS.map((column, index) => (
+                    <TableCell
+                      key={column.id}
+                      align={index === 1 ? 'right' : 'left'}
+                      style={{ minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {brands.content.map((row: any) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.title}>
                     <TableCell align="left">{row.title}</TableCell>
                     <TableCell align="right">
@@ -146,21 +140,12 @@ export const Brands = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          labelRowsPerPage="Количество элементов"
-          labelDisplayedRows={labelDisplayedRows}
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Pagination count={brands.totalElements} getData={getBrands} />
+        </Paper>
+      )}
     </Box>
   );
 };
