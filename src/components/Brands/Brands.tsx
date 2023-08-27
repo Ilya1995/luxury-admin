@@ -20,6 +20,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { ModalDelete } from '../ModalDelete';
+import { ModalActivate } from '../ModalActivate';
 import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
 import { COLUMNS } from './constants';
@@ -30,6 +31,7 @@ export const Brands = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [brands, setBrands] = useState<any>();
   const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [openModalActivate, setOpenModalActivate] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export const Brands = () => {
       if (response.status !== 200 || typeof response.data === 'string') {
         throw new Error('bad response');
       }
+      console.log(444, response.data.content);
 
       setBrands(response.data);
     } catch (error) {
@@ -63,6 +66,26 @@ export const Brands = () => {
     setSelectedId(id);
   };
 
+  const handleShowModalActivate = (id: number) => {
+    setOpenModalActivate(true);
+    setSelectedId(id);
+  };
+
+  const handleChangeActivate = async (value: boolean) => {
+    if (value && selectedId) {
+      const brand = brands.content.find(({ id }: any) => id === selectedId);
+      try {
+        const active = !brand.active;
+        await axios.put(`/brand/${selectedId}`, { ...brand, active });
+        brand.active = active;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    setOpenModalActivate(false);
+    setSelectedId(null);
+  };
+
   return (
     <Box
       component="main"
@@ -81,6 +104,10 @@ export const Brands = () => {
       <ModalDelete
         isOpen={openModalDelete}
         onChangeDelete={handleChangeDelete}
+      />
+      <ModalActivate
+        isOpen={openModalActivate}
+        onChangeDelete={handleChangeActivate}
       />
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -124,7 +151,10 @@ export const Brands = () => {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={row.active ? 'Активен' : 'Не активен'}>
-                        <IconButton aria-label="active">
+                        <IconButton
+                          aria-label="active"
+                          onClick={() => handleShowModalActivate(row.id)}
+                        >
                           {row.active ? (
                             <TaskAltIcon color="success" />
                           ) : (
