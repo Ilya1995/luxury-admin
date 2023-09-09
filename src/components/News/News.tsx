@@ -19,6 +19,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { ModalDelete } from '../ModalDelete';
+import { NewsCard } from '../NewsCard';
 import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
 import { COLUMNS } from './constants';
@@ -27,9 +28,10 @@ import './styles.scss';
 
 export const News = () => {
   const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [openCard, setOpenCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [news, setNews] = useState<any>();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
     getNews(0, 10);
@@ -52,21 +54,36 @@ export const News = () => {
   };
 
   const handleChangeDelete = async (value: boolean) => {
-    if (value && selectedId) {
+    if (value && selected) {
       try {
-        await axios.delete(`/news/${selectedId}`);
+        await axios.delete(`/news/${selected.id}`);
         getNews(0, 10);
       } catch (error) {
         console.error(error);
       }
     }
     setOpenModalDelete(false);
-    setSelectedId(null);
+    setSelected(null);
   };
 
-  const handleShowModalDelete = (id: number) => {
+  const handleShowModalDelete = (value: any) => {
     setOpenModalDelete(true);
-    setSelectedId(id);
+    setSelected(value.id);
+  };
+
+  const handleSave = () => {
+    setSelected(null);
+    setOpenCard(false);
+  };
+
+  const handleOpenCard = (value: any) => {
+    setSelected(value);
+    setOpenCard(true);
+  };
+
+  const handleCloseCard = () => {
+    setSelected(null);
+    setOpenCard(false);
   };
 
   return (
@@ -80,13 +97,23 @@ export const News = () => {
     >
       <Toolbar />
       <div className="news-controls">
-        <Button variant="contained" startIcon={<AddCircleOutlineIcon />}>
+        <Button
+          variant="contained"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() => setOpenCard(true)}
+        >
           Добавить
         </Button>
       </div>
       <ModalDelete
         isOpen={openModalDelete}
         onChangeDelete={handleChangeDelete}
+      />
+      <NewsCard
+        isOpen={openCard}
+        onClose={handleCloseCard}
+        onSave={handleSave}
+        value={selected}
       />
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -127,13 +154,16 @@ export const News = () => {
                       <Tooltip title="Удалить">
                         <IconButton
                           aria-label="delete"
-                          onClick={() => handleShowModalDelete(row.id)}
+                          onClick={() => handleShowModalDelete(row)}
                         >
                           <DeleteIcon sx={{ color: 'var(--red)' }} />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Редактировать">
-                        <IconButton aria-label="edit">
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() => handleOpenCard(row)}
+                        >
                           <EditIcon color="primary" />
                         </IconButton>
                       </Tooltip>
