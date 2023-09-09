@@ -17,6 +17,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useMedia } from '../../hooks';
+import { loadImage, uploadImage } from '../../utils';
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
@@ -33,12 +34,13 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState<any>('');
   const [image, setImage] = useState();
+  const [imgSrc, setImgSrc] = useState();
 
   useEffect(() => {
     if (value) {
       setDate(dayjs(value.newsDate));
       setTitle(value.title);
-      setImage(value.pictureUrl);
+      loadImage(value.imageId).then(setImgSrc);
     }
   }, [value]);
 
@@ -49,20 +51,8 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
     setImage(file);
   };
 
-  const fileToBase64 = async () => {
-    if (!image) return;
-
-    let result_base64 = await new Promise((resolve) => {
-      let fileReader = new FileReader();
-      fileReader.onload = (e) => resolve(fileReader.result);
-      fileReader.readAsDataURL(image);
-    });
-
-    return result_base64;
-  };
-
   const handleSave = async (event: MouseEvent<HTMLButtonElement>) => {
-    const isValid = title.trim() && date && image;
+    const isValid = title.trim() && date && (image || value.imageId);
 
     if (!isValid) {
       setAnchorEl(event.currentTarget);
@@ -70,13 +60,17 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
     }
 
     try {
-      const imageStr = await fileToBase64();
+      let imageId = value.imageId;
+
+      if (image) {
+        imageId = await uploadImage(image);
+      }
 
       const data = {
         ...value,
         title: title.trim(),
         newsDate: date.toISOString?.(),
-        pictureUrl: imageStr,
+        imageId,
       };
 
       const response = await axios.post('/news', data);
@@ -103,6 +97,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
     setTitle('');
     setDate('');
     setImage(undefined);
+    setImgSrc(undefined);
   };
 
   const open = Boolean(anchorEl);
@@ -126,7 +121,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
             <CloseIcon />
           </IconButton>
           <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-            Создание новости
+            {value ? 'Редактирование' : 'Создание'} новости
           </Typography>
           <Button
             aria-describedby={id}
@@ -205,12 +200,12 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
           />
         </Button>
 
-        {image && (
+        {(image || imgSrc) && (
           <div>
             <img
               alt="not found"
-              width={'250px'}
-              src={URL.createObjectURL(image)}
+              width="250px"
+              src={URL.createObjectURL(image || imgSrc!)}
             />
           </div>
         )}
