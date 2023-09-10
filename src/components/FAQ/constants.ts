@@ -1,5 +1,5 @@
 export const COLUMNS = [
-  { id: 'name', label: 'Название', minWidth: 450 },
+  { id: 'name', label: 'Вопрос', minWidth: 450 },
   {
     id: 'population',
     label: 'Действия',
