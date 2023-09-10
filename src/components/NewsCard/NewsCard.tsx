@@ -1,4 +1,4 @@
-import { FC, forwardRef, useState, useEffect, MouseEvent } from 'react';
+import { FC, useState, useEffect, MouseEvent } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -12,21 +12,11 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Popover from '@mui/material/Popover';
-import Slide from '@mui/material/Slide';
-import { TransitionProps } from '@mui/material/transitions';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useMedia } from '../../hooks';
 import { loadImage, uploadImage } from '../../utils';
-
-const Transition = forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement;
-  },
-  ref: React.Ref<unknown>
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+import { Transition } from '../Transition';
 
 export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -37,12 +27,12 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   const [imgSrc, setImgSrc] = useState();
 
   useEffect(() => {
-    if (value) {
+    if (value && isOpen) {
       setDate(dayjs(value.newsDate));
       setTitle(value.title);
       loadImage(value.imageId).then(setImgSrc);
     }
-  }, [value]);
+  }, [value, isOpen]);
 
   const handleUploadImage = (event: any) => {
     const file = event?.target?.files?.[0];
@@ -52,7 +42,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   };
 
   const handleSave = async (event: MouseEvent<HTMLButtonElement>) => {
-    const isValid = title.trim() && date && (image || value.imageId);
+    const isValid = title.trim() && date && (image || value?.imageId);
 
     if (!isValid) {
       setAnchorEl(event.currentTarget);
@@ -60,7 +50,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
     }
 
     try {
-      let imageId = value.imageId;
+      let imageId = value?.imageId;
 
       if (image) {
         imageId = await uploadImage(image);
@@ -78,8 +68,10 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
         throw new Error('bad response');
       }
 
+      clearForm();
       onSave();
     } catch (error) {
+      console.log(error);
       toast.error('Произошла ошибка, попробуйте позже');
     }
   };

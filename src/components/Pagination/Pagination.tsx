@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, ChangeEvent } from 'react';
 
 import TablePagination from '@mui/material/TablePagination';
 
@@ -11,9 +11,7 @@ export const Pagination: FC<any> = ({ count, getData }) => {
     getData(newPage, rowsPerPage);
   };
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
     getData(0, +event.target.value);

@@ -68,10 +68,11 @@ export const News = () => {
 
   const handleShowModalDelete = (value: any) => {
     setOpenModalDelete(true);
-    setSelected(value.id);
+    setSelected(value);
   };
 
   const handleSave = () => {
+    getNews(0, 10);
     setSelected(null);
     setOpenCard(false);
   };
