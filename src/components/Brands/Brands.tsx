@@ -20,6 +20,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { ModalDelete } from '../ModalDelete';
+import { BrandCard } from '../BrandCard';
 import { ModalActivate } from '../ModalActivate';
 import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
@@ -32,7 +33,8 @@ export const Brands = () => {
   const [brands, setBrands] = useState<any>();
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalActivate, setOpenModalActivate] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [openCard, setOpenCard] = useState(false);
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
     getBrands(0, 10);
@@ -55,41 +57,56 @@ export const Brands = () => {
   };
 
   const handleChangeDelete = async (value: boolean) => {
-    if (value && selectedId) {
+    if (value && selected) {
       try {
-        await axios.delete(`/brand/${selectedId}`);
+        await axios.delete(`/brand/${selected.id}`);
         getBrands(0, 10);
       } catch (error) {
         console.error(error);
       }
     }
     setOpenModalDelete(false);
-    setSelectedId(null);
+    setSelected(null);
   };
 
-  const handleShowModalDelete = (id: number) => {
+  const handleShowModalDelete = (value: any) => {
     setOpenModalDelete(true);
-    setSelectedId(id);
+    setSelected(value);
   };
 
-  const handleShowModalActivate = (id: number) => {
+  const handleSave = () => {
+    getBrands(0, 10);
+    setSelected(null);
+    setOpenCard(false);
+  };
+
+  const handleOpenCard = (value: any) => {
+    setSelected(value);
+    setOpenCard(true);
+  };
+
+  const handleCloseCard = () => {
+    setSelected(null);
+    setOpenCard(false);
+  };
+
+  const handleShowModalActivate = (value: any) => {
     setOpenModalActivate(true);
-    setSelectedId(id);
+    setSelected(value);
   };
 
   const handleChangeActivate = async (value: boolean) => {
-    if (value && selectedId) {
-      const brand = brands.content.find(({ id }: any) => id === selectedId);
+    if (value && selected) {
       try {
-        const active = !brand.active;
-        await axios.put(`/brand/${selectedId}`, { ...brand, active });
-        brand.active = active;
+        const active = !selected.active;
+        await axios.put(`/brand/${selected.id}`, { ...selected, active });
+        selected.active = active;
       } catch (error) {
         console.error(error);
       }
     }
     setOpenModalActivate(false);
-    setSelectedId(null);
+    setSelected(null);
   };
 
   return (
@@ -103,7 +120,11 @@ export const Brands = () => {
     >
       <Toolbar />
       <div className="news-controls">
-        <Button variant="contained" startIcon={<AddCircleOutlineIcon />}>
+        <Button
+          variant="contained"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() => setOpenCard(true)}
+        >
           Добавить
         </Button>
       </div>
@@ -111,11 +132,15 @@ export const Brands = () => {
         isOpen={openModalDelete}
         onChangeDelete={handleChangeDelete}
       />
+      <BrandCard
+        isOpen={openCard}
+        onClose={handleCloseCard}
+        onSave={handleSave}
+        value={selected}
+      />
       <ModalActivate
         isOpen={openModalActivate}
-        isActive={
-          brands?.content.find(({ id }: any) => id === selectedId)?.active
-        }
+        isActive={selected?.active}
         onChangeDelete={handleChangeActivate}
       />
       {isLoading && (
@@ -154,7 +179,7 @@ export const Brands = () => {
                       <Tooltip title="Удалить">
                         <IconButton
                           aria-label="delete"
-                          onClick={() => handleShowModalDelete(row.id)}
+                          onClick={() => handleShowModalDelete(row)}
                         >
                           <DeleteIcon sx={{ color: 'var(--red)' }} />
                         </IconButton>
@@ -162,7 +187,7 @@ export const Brands = () => {
                       <Tooltip title={row.active ? 'Активен' : 'Не активен'}>
                         <IconButton
                           aria-label="active"
-                          onClick={() => handleShowModalActivate(row.id)}
+                          onClick={() => handleShowModalActivate(row)}
                         >
                           {row.active ? (
                             <TaskAltIcon color="success" />
@@ -172,7 +197,10 @@ export const Brands = () => {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Редактировать">
-                        <IconButton aria-label="edit">
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() => handleOpenCard(row)}
+                        >
                           <EditIcon color="primary" />
                         </IconButton>
                       </Tooltip>
