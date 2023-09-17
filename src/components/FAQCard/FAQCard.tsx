@@ -1,6 +1,7 @@
 import { FC, useState, useEffect, MouseEvent } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import htmlToDraft from 'html-to-draftjs';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToHtmlPuri from 'draftjs-to-html';
 import {
@@ -37,7 +38,7 @@ export const FAQCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   useEffect(() => {
     if (value && isOpen) {
       setTitle(value.title);
-      const blocks = convertFromHTML(value.description);
+      const blocks = htmlToDraft(value.description);
       setEditorState(
         EditorState.createWithContent(
           ContentState.createFromBlockArray(

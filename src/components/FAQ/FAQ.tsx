@@ -145,7 +145,7 @@ export const FAQ = () => {
               </TableHead>
               <TableBody>
                 {faqs.content.map((row: any) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.title}>
+                  <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                     <TableCell align="left">{row.title}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="Удалить">
