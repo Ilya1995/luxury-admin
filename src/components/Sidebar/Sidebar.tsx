@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText';
 import FeedIcon from '@mui/icons-material/Feed';
 import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 import QuizIcon from '@mui/icons-material/Quiz';
+import CategoryIcon from '@mui/icons-material/Category';
 import Toolbar from '@mui/material/Toolbar';
 
 import { SIDEBAR_WIDTH, SIDEBAR_ITEMS } from '../../constants';
@@ -25,7 +26,7 @@ export const Sidebar: FC<any> = ({
   const drawer = (
     <div>
       <Toolbar className="sidebar-toolbar">
-        <img className="sidebar-logo" alt="Лого" src="./logo.svg" />
+        <img className="sidebar-logo" alt="Лого" src="/logo.svg" />
       </Toolbar>
       <Divider />
       <List>
@@ -40,6 +41,7 @@ export const Sidebar: FC<any> = ({
                 {index === 0 && <FeedIcon />}
                 {index === 1 && <BrandingWatermarkIcon />}
                 {index === 2 && <QuizIcon />}
+                {index === 3 && <CategoryIcon />}
               </ListItemIcon>
               <ListItemText primary={text} />
             </ListItemButton>

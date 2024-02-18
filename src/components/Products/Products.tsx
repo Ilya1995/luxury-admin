@@ -9,48 +9,45 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
-import BlockIcon from '@mui/icons-material/Block';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import Tooltip from '@mui/material/Tooltip';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { ModalDelete } from '../ModalDelete';
-import { BrandCard } from '../BrandCard';
-import { ModalActivate } from '../ModalActivate';
+import { ProductCard } from '../ProductCard';
 import { Pagination } from '../Pagination';
 import { SIDEBAR_WIDTH } from '../../constants';
 import { COLUMNS } from './constants';
 
 import './styles.scss';
 
-export const Brands = () => {
+export const Products = () => {
+  const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [brands, setBrands] = useState<any>();
-  const [openModalDelete, setOpenModalDelete] = useState(false);
-  const [openModalActivate, setOpenModalActivate] = useState(false);
+  const [products, setProducts] = useState<any>();
   const [openCard, setOpenCard] = useState(false);
   const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
-    getBrands(0, 10);
+    getProducts(0, 10);
   }, []);
 
-  const getBrands = async (page: number, size: number) => {
+  const getProducts = async (page: number, size: number) => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        `/brand?page=${page}&size=${size}&sort=number%2Ccreated%2CASC`
-      );
+
+      const url = `/products${
+        searchText ? '/text-search' : ''
+      }?page=${page}&size=${size}&text=${searchText}`;
+
+      const response = await axios.get(url);
       if (response.status !== 200 || typeof response.data === 'string') {
         throw new Error('bad response');
       }
 
-      setBrands(response.data);
+      setProducts(response.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -58,26 +55,8 @@ export const Brands = () => {
     }
   };
 
-  const handleChangeDelete = async (value: boolean) => {
-    if (value && selected) {
-      try {
-        await axios.delete(`/brand/${selected.id}`);
-        getBrands(0, 10);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    setOpenModalDelete(false);
-    setSelected(null);
-  };
-
-  const handleShowModalDelete = (value: any) => {
-    setOpenModalDelete(true);
-    setSelected(value);
-  };
-
   const handleSave = () => {
-    getBrands(0, 10);
+    getProducts(0, 10);
     setSelected(null);
     setOpenCard(false);
   };
@@ -92,25 +71,6 @@ export const Brands = () => {
     setOpenCard(false);
   };
 
-  const handleShowModalActivate = (value: any) => {
-    setOpenModalActivate(true);
-    setSelected(value);
-  };
-
-  const handleChangeActivate = async (value: boolean) => {
-    if (value && selected) {
-      try {
-        const active = !selected.active;
-        await axios.put(`/brand/${selected.id}`, { ...selected, active });
-        selected.active = active;
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    setOpenModalActivate(false);
-    setSelected(null);
-  };
-
   return (
     <Box
       component="main"
@@ -121,36 +81,42 @@ export const Brands = () => {
       }}
     >
       <Toolbar />
-      <div className="news-controls">
-        <Button
-          variant="contained"
-          startIcon={<AddCircleOutlineIcon />}
-          onClick={() => setOpenCard(true)}
+      <div className="products-controls">
+        <Box
+          component="form"
+          sx={{
+            '& > :not(style)': {
+              my: 0,
+              mr: 2,
+              width: '25vw',
+            },
+          }}
+          noValidate
+          autoComplete="off"
         >
-          Добавить
+          <TextField
+            label="Поиск"
+            variant="outlined"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </Box>
+        <Button variant="contained" onClick={() => getProducts(0, 10)}>
+          Найти
         </Button>
       </div>
-      <ModalDelete
-        isOpen={openModalDelete}
-        onChangeDelete={handleChangeDelete}
-      />
-      <BrandCard
+      <ProductCard
         isOpen={openCard}
         onClose={handleCloseCard}
         onSave={handleSave}
         value={selected}
-      />
-      <ModalActivate
-        isOpen={openModalActivate}
-        isActive={selected?.active}
-        onChangeDelete={handleChangeActivate}
       />
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Box>
       )}
-      {!!brands?.totalElements && (
+      {!!products?.totalElements && (
         <Paper
           sx={{
             width: '100%',
@@ -174,30 +140,10 @@ export const Brands = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {brands.content.map((row: any) => (
+                {products.content.map((row: any) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                     <TableCell align="left">{row.title}</TableCell>
                     <TableCell align="right">
-                      <Tooltip title="Удалить">
-                        <IconButton
-                          aria-label="delete"
-                          onClick={() => handleShowModalDelete(row)}
-                        >
-                          <DeleteIcon sx={{ color: 'var(--red)' }} />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={row.active ? 'Активен' : 'Не активен'}>
-                        <IconButton
-                          aria-label="active"
-                          onClick={() => handleShowModalActivate(row)}
-                        >
-                          {row.active ? (
-                            <TaskAltIcon color="success" />
-                          ) : (
-                            <BlockIcon />
-                          )}
-                        </IconButton>
-                      </Tooltip>
                       <Tooltip title="Редактировать">
                         <IconButton
                           aria-label="edit"
@@ -212,9 +158,11 @@ export const Brands = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          <Pagination count={brands.totalElements} getData={getBrands} />
+          <Pagination count={products.totalElements} getData={getProducts} />
         </Paper>
       )}
+
+      {!products?.totalElements && <div>Товары не найдены</div>}
     </Box>
   );
 };

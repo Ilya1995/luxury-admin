@@ -121,7 +121,7 @@ export const News = () => {
           <CircularProgress />
         </Box>
       )}
-      {news?.totalElements && (
+      {!!news?.totalElements && (
         <Paper
           sx={{
             width: '100%',

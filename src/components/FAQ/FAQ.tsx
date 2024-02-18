@@ -120,7 +120,7 @@ export const FAQ = () => {
           <CircularProgress />
         </Box>
       )}
-      {faqs?.totalElements && (
+      {!!faqs?.totalElements && (
         <Paper
           sx={{
             width: '100%',

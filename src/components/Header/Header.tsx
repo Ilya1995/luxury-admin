@@ -34,7 +34,7 @@ export const Header: FC<any> = ({ handleDrawerToggle, title }) => {
             {title}
           </Typography>
         </div>
-        <Avatar alt="Cindy Baker" src="avatar.jpg" />
+        <Avatar alt="Cindy Baker" src="/avatar.jpg" />
       </Toolbar>
     </AppBar>
   );
