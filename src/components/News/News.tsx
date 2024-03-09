@@ -147,7 +147,7 @@ export const News = () => {
               <TableBody>
                 {news.content.map((row: any) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                    <TableCell align="left">{row.title}</TableCell>
+                    <TableCell align="left">{row.descriptionRus}</TableCell>
                     <TableCell align="left">
                       {dayjs(row.newsDate).format('DD.MM.YYYY')}
                     </TableCell>

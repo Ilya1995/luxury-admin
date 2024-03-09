@@ -37,8 +37,8 @@ export const FAQCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
 
   useEffect(() => {
     if (value && isOpen) {
-      setTitle(value.title);
-      const blocks = htmlToDraft(value.description);
+      setTitle(value.titleRu);
+      const blocks = htmlToDraft(value.descriptionRu);
       setEditorState(
         EditorState.createWithContent(
           ContentState.createFromBlockArray(
@@ -65,8 +65,10 @@ export const FAQCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
     try {
       const data = {
         ...value,
-        title: title.trim(),
-        description,
+        titleRu: title.trim(),
+        descriptionRu: description,
+        titleEng: title.trim(),
+        descriptionEng: description,
       };
 
       const response = await axios.post('/faq', data);

@@ -29,7 +29,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
   useEffect(() => {
     if (value && isOpen) {
       setDate(dayjs(value.newsDate));
-      setTitle(value.title);
+      setTitle(value.descriptionRus);
       loadImage(value.imageId).then(setImgSrc);
     }
   }, [value, isOpen]);
@@ -58,7 +58,7 @@ export const NewsCard: FC<any> = ({ value, isOpen, onClose, onSave }) => {
 
       const data = {
         ...value,
-        title: title.trim(),
+        descriptionRus: title.trim(),
         newsDate: date.toISOString?.(),
         imageId,
       };
